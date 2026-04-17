@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent prompt/build docs
+riven-gg-batch-prompts.md
+riven-gg-agent-build-guide.md

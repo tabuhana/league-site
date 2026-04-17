@@ -9,7 +9,7 @@ Prompts to paste into Claude Code (agent mode) for each batch. Start a fresh con
 **Estimated tokens:** ~30K
 
 ```
-Initialize a Next.js 15 project called riven-gg with TypeScript, Tailwind CSS, ESLint, App Router, and src directory.
+This is  a Next.js project called riven-gg with TypeScript, Tailwind CSS, ESLint, App Router, and src directory.
 
 Install these dependencies:
 
