@@ -15,7 +15,7 @@ export default async function MatchupsIndexPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="border-b border-zinc-900 bg-gradient-to-b from-rose-950/30 via-zinc-950 to-zinc-950">
+      <div className="border-b border-zinc-900 bg-linear-to-b from-rose-950/30 via-zinc-950 to-zinc-950">
         <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-rose-400/80">
             Riven · Top Lane

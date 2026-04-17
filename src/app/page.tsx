@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -110,12 +111,12 @@ export default async function Home() {
                     href={`/matchups/${m.slug}`}
                     className="group flex items-center gap-4 rounded-md border border-riven-border bg-bg-secondary p-4 transition-all hover:border-accent-gold hover:bg-bg-tertiary"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={m.iconUrl}
                       alt={m.championName}
                       width={56}
                       height={56}
+                      unoptimized
                       className="size-14 rounded border border-riven-border"
                     />
                     <div className="flex flex-1 flex-col">

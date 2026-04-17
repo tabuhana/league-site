@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getAbilityIconUrl } from "@/lib/riot/ddragon";
 
 type Ability = "P" | "Q" | "W" | "E" | "R";
@@ -13,12 +14,13 @@ export async function AbilityIcon({
 }) {
   const src = await getAbilityIconUrl(champion, ability);
   return (
-    <img
+    <Image
       src={src}
       alt={`${champion} ${ability}`}
       width={size}
       height={size}
       loading="lazy"
+      unoptimized
       className="inline-block rounded align-middle"
     />
   );

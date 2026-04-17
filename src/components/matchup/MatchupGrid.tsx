@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search, ArrowUpDown } from "lucide-react";
@@ -139,11 +140,14 @@ function MatchupCardItem({ matchup }: { matchup: MatchupSummary }) {
       <div className="relative flex flex-col gap-4 p-5">
         <div className="flex items-start gap-3">
           <div className="relative size-14 shrink-0 overflow-hidden rounded-lg ring-1 ring-zinc-700/70">
-            <img
+            <Image
               src={matchup.iconUrl}
               alt={matchup.championName}
+              fill
+              sizes="56px"
               loading="lazy"
-              className="size-full object-cover"
+              unoptimized
+              className="object-cover"
             />
           </div>
           <div className="min-w-0 flex-1">

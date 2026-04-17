@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -140,10 +141,13 @@ export default async function MatchupPage({
           <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-center gap-5">
               <div className="relative size-20 overflow-hidden rounded-xl ring-2 ring-rose-500/20 sm:size-24">
-                <img
+                <Image
                   src={iconUrl}
                   alt={championName}
-                  className="size-full object-cover"
+                  fill
+                  sizes="(min-width: 640px) 96px, 80px"
+                  unoptimized
+                  className="object-cover"
                 />
               </div>
               <div>

@@ -1,25 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { History } from "lucide-react";
 import { formatTimeAgo } from "@/lib/utils";
 
 type Entry = { region: string; riotId: string; ts: number };
 
+const STORAGE_KEY = "riven-recent-lookups";
+const EMPTY: Entry[] = [];
+
+function subscribe(cb: () => void) {
+  const handler = (e: StorageEvent) => {
+    if (e.key === STORAGE_KEY) cb();
+  };
+  window.addEventListener("storage", handler);
+  return () => window.removeEventListener("storage", handler);
+}
+
+// Cache the last parsed snapshot so useSyncExternalStore gets a stable
+// reference between renders when nothing has changed.
+let cachedRaw: string | null = null;
+let cachedEntries: Entry[] = EMPTY;
+
+function getSnapshot(): Entry[] {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw === cachedRaw) return cachedEntries;
+  cachedRaw = raw;
+  if (!raw) {
+    cachedEntries = EMPTY;
+    return cachedEntries;
+  }
+  try {
+    cachedEntries = JSON.parse(raw) as Entry[];
+  } catch {
+    cachedEntries = EMPTY;
+  }
+  return cachedEntries;
+}
+
+function getServerSnapshot(): Entry[] {
+  return EMPTY;
+}
+
 export function RecentLookups() {
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const entries = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("riven-recent-lookups");
-      if (raw) setEntries(JSON.parse(raw) as Entry[]);
-    } catch {}
-    setHydrated(true);
-  }, []);
-
-  if (!hydrated || entries.length === 0) return null;
+  if (entries.length === 0) return null;
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pb-20">

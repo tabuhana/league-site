@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { EloDistribution, TIERS, type Tier } from "./EloDistribution";
+import { EloDistribution, type Tier } from "./EloDistribution";
 import { StatComparison } from "./StatComparison";
 import { StatRadar } from "./StatRadar";
 import {

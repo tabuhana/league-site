@@ -117,15 +117,25 @@ export function RivenMatchList({
         <ul className="flex flex-col gap-2">
           {visibleRows.map((row) => {
             const isOpen = expanded === row.matchId;
+            const toggle = () =>
+              setExpanded(isOpen ? null : row.matchId);
             return (
               <li key={row.matchId}>
-                <button
-                  type="button"
-                  onClick={() => setExpanded(isOpen ? null : row.matchId)}
-                  className="block w-full cursor-pointer text-left"
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isOpen}
+                  onClick={toggle}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggle();
+                    }
+                  }}
+                  className="block w-full cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-accent-gold"
                 >
                   {row.card}
-                </button>
+                </div>
                 {isOpen ? row.detail : null}
               </li>
             );

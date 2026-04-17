@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   formatGameDuration,
   formatKDA,
@@ -6,6 +5,7 @@ import {
   calculateKDARatio,
   cn,
 } from "@/lib/utils";
+import { MatchupLink } from "./MatchupLink";
 import { getChampionByName } from "@/constants/champions";
 import {
   getChampionIconUrl,
@@ -157,25 +157,11 @@ export async function RivenMatchCard({
           ) : null}
         </div>
 
-        <Link
-          href={`/matchups/${opponentKey.toLowerCase()}`}
-          className="ml-auto flex items-center gap-2 rounded px-2 py-1 hover:bg-bg-tertiary"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={opponentIcon}
-            alt={game.opponentChampionName}
-            className="size-10 rounded"
-          />
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-wider text-text-secondary">
-              vs
-            </p>
-            <p className="text-sm font-semibold text-text-primary">
-              {game.opponentChampionName}
-            </p>
-          </div>
-        </Link>
+        <MatchupLink
+          opponentKey={opponentKey}
+          opponentIcon={opponentIcon}
+          opponentName={game.opponentChampionName}
+        />
       </div>
 
       {expanded ? children : null}
