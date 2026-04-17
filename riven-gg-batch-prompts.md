@@ -250,6 +250,10 @@ Before writing any code, read these existing files:
 - src/constants/riven.ts
 - src/constants/champions.ts
 - src/types/index.ts
+- src/lib/riot/types.ts
+- src/lib/riot/endpoints.ts
+- src/lib/riot/client.ts
+- src/lib/riot/riven.ts
 
 Then implement:
 
