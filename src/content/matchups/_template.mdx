@@ -1,9 +1,60 @@
----
-title: Matchup template
-champion: example
-difficulty: medium
----
+export const metadata = {
+  champion: "Example",
+  championKey: "Example",
+  difficulty: "medium",
+  patch: "15.1",
+  author: "Unknown",
+  lastUpdated: "2026-01-01",
+  tldr: "One-sentence summary of the matchup.",
+};
 
-# Matchup template
+# {metadata.champion} vs. Riven — <DifficultyBadge level={metadata.difficulty} />
 
-Write matchup notes here.
+{metadata.tldr}
+
+## Overview
+
+Describe the matchup at a high level. Lane kingdom, scaling, key power spikes.
+
+## Laning Phase
+
+Explain levels 1-6 trading patterns, wave management, and when Riven can all-in.
+
+## Key Abilities to Watch
+
+- <AbilityIcon champion={metadata.championKey} ability="Q" /> **Q** — what it does and how to bait it.
+- <AbilityIcon champion={metadata.championKey} ability="W" /> **W** — when it is used and how to dodge.
+- <AbilityIcon champion={metadata.championKey} ability="E" /> **E** — mobility / engage tool notes.
+- <AbilityIcon champion={metadata.championKey} ability="R" /> **R** — ultimate windows and counterplay.
+
+## Itemization
+
+Recommended first item, boots timing, defensive pivots.
+
+## Tips & Tricks
+
+<TipBlock type="do">
+  Example: cancel Q3 into E mid-animation to catch dodges.
+</TipBlock>
+
+<TipBlock type="dont">
+  Example: don't walk up without W available past level 3.
+</TipBlock>
+
+<TipBlock type="info">
+  Example: their passive stacks fall off after 4 seconds of no damage.
+</TipBlock>
+
+## Gameplay Phases
+
+### Early
+
+Lane priorities 1-8.
+
+### Mid
+
+Roam/side-lane decisions, item spikes, objective setups.
+
+### Late
+
+Teamfight positioning, flank windows, win conditions.
