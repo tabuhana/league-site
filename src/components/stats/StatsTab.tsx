@@ -39,11 +39,13 @@ function tierLabel(tier: Tier): string {
 }
 
 export function StatsTab({
-  games,
+  allGames,
+  rankedGames,
   eloStatsByTier,
   playerTier,
 }: {
-  games: RivenGame[];
+  allGames: RivenGame[];
+  rankedGames: RivenGame[];
   eloStatsByTier: Partial<Record<Tier, EloRivenStats>>;
   playerTier: Tier | null;
 }) {
@@ -56,10 +58,18 @@ export function StatsTab({
   const [range, setRange] = useState<RangeValue>(20);
   const [tier, setTier] = useState<Tier>(defaultTier);
 
-  const filteredGames = useMemo(() => {
-    if (range === 0) return games;
-    return games.slice(0, range);
-  }, [games, range]);
+  const allSlice = useMemo(() => {
+    if (range === 0) return allGames;
+    return allGames.slice(0, range);
+  }, [allGames, range]);
+
+  const rankedSlice = useMemo(() => {
+    if (range === 0) return rankedGames;
+    return rankedGames.slice(0, range);
+  }, [rankedGames, range]);
+
+  const usingRankedSolo = rankedSlice.length > 0;
+  const filteredGames = usingRankedSolo ? rankedSlice : allSlice;
 
   const playerStats = useMemo(
     () => computeOverallStats(filteredGames),
@@ -75,11 +85,11 @@ export function StatsTab({
 
   const eloStats = eloStatsByTier[tier] ?? null;
 
-  if (games.length === 0) {
+  if (allGames.length === 0) {
     return (
       <div className="rounded border border-riven-border bg-bg-secondary p-10 text-center text-sm text-text-secondary">
-        No Riven games yet. Scan matches from the Matches tab to populate
-        stats.
+        No Riven games yet. Use Scan matches on the Overview tab next to Match
+        history to populate stats.
       </div>
     );
   }
@@ -87,30 +97,46 @@ export function StatsTab({
   return (
     <div className="flex flex-col gap-5">
       <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-riven-border bg-bg-secondary p-3">
-          <span className="text-[10px] uppercase tracking-widest text-text-secondary">
-            Range
-          </span>
-          <div className="flex flex-1 flex-wrap gap-1">
-            {RANGES.map((r) => (
-              <button
-                key={r.value}
-                type="button"
-                onClick={() => setRange(r.value)}
-                className={cn(
-                  "rounded px-3 py-1 text-xs uppercase tracking-wider transition-colors",
-                  range === r.value
-                    ? "bg-accent-gold text-bg-primary"
-                    : "bg-bg-tertiary text-text-secondary hover:text-text-primary",
-                )}
-              >
-                {r.label}
-              </button>
-            ))}
+        <div className="flex flex-col gap-2 rounded-lg border border-riven-border bg-bg-secondary p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest",
+                usingRankedSolo
+                  ? "bg-accent-gold/15 text-accent-gold"
+                  : "bg-bg-tertiary text-text-secondary",
+              )}
+            >
+              {usingRankedSolo
+                ? "Solo ranked"
+                : "All queues (no solo ranked in this range)"}
+            </span>
           </div>
-          <span className="font-mono text-xs tabular-nums text-text-secondary">
-            {filteredGames.length} games
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] uppercase tracking-widest text-text-secondary">
+              Range
+            </span>
+            <div className="flex flex-1 flex-wrap gap-1">
+              {RANGES.map((r) => (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => setRange(r.value)}
+                  className={cn(
+                    "rounded px-3 py-1 text-xs uppercase tracking-wider transition-colors",
+                    range === r.value
+                      ? "bg-accent-gold text-bg-primary"
+                      : "bg-bg-tertiary text-text-secondary hover:text-text-primary",
+                  )}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <span className="font-mono text-xs tabular-nums text-text-secondary">
+              {filteredGames.length} games
+            </span>
+          </div>
         </div>
         <EloDistribution
           selectedTier={tier}
@@ -318,6 +344,14 @@ function TrendCharts({ rolling }: { rolling: RollingStatPoint[] }) {
   );
 }
 
+function rollingChartTooltipTitle(d: RollingStatPoint): string {
+  const name = d.opponentChampionName.trim();
+  if (name.length > 0) {
+    return `vs ${name}`;
+  }
+  return `Game ${d.gameIndex}`;
+}
+
 function TrendChart({
   title,
   data,
@@ -328,7 +362,7 @@ function TrendChart({
 }: {
   title: string;
   data: RollingStatPoint[];
-  dataKey: keyof RollingStatPoint;
+  dataKey: Exclude<keyof RollingStatPoint, "opponentChampionName">;
   color: string;
   format: (value: number) => string;
   domain?: [number, number];
@@ -358,18 +392,27 @@ function TrendChart({
               width={48}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--bg-primary)",
-                border: "1px solid var(--riven-border)",
-                borderRadius: 4,
-                fontSize: 12,
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const d = payload[0].payload as RollingStatPoint;
+                const raw = payload[0].value;
+                const value =
+                  typeof raw === "number" ? format(raw) : String(raw);
+                return (
+                  <div
+                    className="rounded border border-riven-border bg-bg-primary p-2 text-xs shadow-sm"
+                    style={{ fontSize: 12 }}
+                  >
+                    <p className="mb-1 text-text-secondary">
+                      {rollingChartTooltipTitle(d)}
+                    </p>
+                    <p className="text-text-primary">
+                      <span className="text-text-secondary">{title}: </span>
+                      {value}
+                    </p>
+                  </div>
+                );
               }}
-              labelStyle={{ color: "var(--text-secondary)" }}
-              labelFormatter={(value) => `Game ${value}`}
-              formatter={(value) => [
-                typeof value === "number" ? format(value) : String(value),
-                title,
-              ]}
             />
             <Line
               type="monotone"

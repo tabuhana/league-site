@@ -33,30 +33,27 @@ function parseItems(raw: string): number[] {
   }
 }
 
-export async function RivenMatchCard({
+export function RivenMatchCardView({
   game,
+  opponentIcon,
+  itemIcons,
+  trinketIcon,
+  opponentKey,
+  queueLabel,
   expanded,
   children,
 }: {
   game: RivenGame;
+  opponentIcon: string;
+  itemIcons: (string | null)[];
+  trinketIcon: string | null;
+  opponentKey: string;
+  queueLabel: string;
   expanded?: boolean;
   children?: React.ReactNode;
 }) {
   const win = game.win === 1;
-  const items = parseItems(game.items);
-  const opponentChamp = getChampionByName(game.opponentChampionName);
-  const opponentKey = opponentChamp?.key ?? game.opponentChampionName;
-  const opponentIcon = await getChampionIconUrl(opponentKey);
-  const itemIcons = await Promise.all(
-    items.slice(0, 6).map((id) =>
-      id > 0 ? getItemIconUrl(id) : Promise.resolve(null),
-    ),
-  );
-  const trinketIcon =
-    items[6] && items[6] > 0 ? await getItemIconUrl(items[6]) : null;
-
   const csDiff = game.cs - game.opponentCs;
-  const queueLabel = QUEUE_LABELS[game.queueId] ?? "Custom";
 
   return (
     <article
@@ -166,5 +163,43 @@ export async function RivenMatchCard({
 
       {expanded ? children : null}
     </article>
+  );
+}
+
+export async function RivenMatchCard({
+  game,
+  expanded,
+  children,
+}: {
+  game: RivenGame;
+  expanded?: boolean;
+  children?: React.ReactNode;
+}) {
+  const items = parseItems(game.items);
+  const opponentChamp = getChampionByName(game.opponentChampionName);
+  const opponentKey = opponentChamp?.key ?? game.opponentChampionName;
+  const opponentIcon = await getChampionIconUrl(opponentKey);
+  const itemIcons = await Promise.all(
+    items.slice(0, 6).map((id) =>
+      id > 0 ? getItemIconUrl(id) : Promise.resolve(null),
+    ),
+  );
+  const trinketIcon =
+    items[6] && items[6] > 0 ? await getItemIconUrl(items[6]) : null;
+
+  const queueLabel = QUEUE_LABELS[game.queueId] ?? "Custom";
+
+  return (
+    <RivenMatchCardView
+      game={game}
+      opponentIcon={opponentIcon}
+      itemIcons={itemIcons}
+      trinketIcon={trinketIcon}
+      opponentKey={opponentKey}
+      queueLabel={queueLabel}
+      expanded={expanded}
+    >
+      {children}
+    </RivenMatchCardView>
   );
 }

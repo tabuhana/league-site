@@ -13,7 +13,8 @@ export function RivenStatsOverview({ stats }: { stats: RivenOverallStats }) {
       </h3>
       {totalGames === 0 ? (
         <p className="text-sm text-text-secondary">
-          No scanned games yet. Click Update to pull recent matches.
+          No scanned games yet. Use Scan matches next to Match history to pull
+          recent matches.
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

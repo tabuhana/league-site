@@ -1,25 +1,9 @@
 "use client";
 
 import { getTierColor } from "@/lib/utils";
+import { TIERS, tierLabel, type Tier } from "./tiers";
 
-export const TIERS = [
-  "IRON",
-  "BRONZE",
-  "SILVER",
-  "GOLD",
-  "PLATINUM",
-  "EMERALD",
-  "DIAMOND",
-  "MASTER",
-  "GRANDMASTER",
-  "CHALLENGER",
-] as const;
-
-export type Tier = (typeof TIERS)[number];
-
-function tierLabel(tier: Tier): string {
-  return tier.charAt(0) + tier.slice(1).toLowerCase();
-}
+export type { Tier };
 
 export function EloDistribution({
   selectedTier,

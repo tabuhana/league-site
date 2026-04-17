@@ -28,18 +28,16 @@ async function loadProfile(region: PlatformRegion, riotId: string) {
   if (!account) return null;
 
   if (isSummonerStale(account.puuid)) {
-    const summoner = await getSummonerByPuuid(region, account.puuid);
-    const summonerId = summoner?.id ?? null;
-    const leagueEntries = summonerId
-      ? await getLeagueEntries(region, summonerId)
-      : [];
+    const [summoner, leagueEntries] = await Promise.all([
+      getSummonerByPuuid(region, account.puuid),
+      getLeagueEntries(region, account.puuid),
+    ]);
 
     upsertSummoner({
       puuid: account.puuid,
       region,
       gameName: account.gameName,
       tagLine: account.tagLine,
-      summonerId,
       profileIconId: summoner?.profileIconId ?? null,
       summonerLevel: summoner?.summonerLevel ?? null,
     });
@@ -83,7 +81,6 @@ export default async function PlayerLayout({
   const basePath = `/player/${region}/${riotId}`;
   const tabs = [
     { label: "Overview", value: "overview", href: basePath },
-    { label: "Matches", value: "matches", href: `${basePath}?tab=matches` },
     { label: "Stats", value: "stats", href: `${basePath}?tab=stats` },
   ];
 

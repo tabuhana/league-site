@@ -5,7 +5,6 @@ export const summoners = sqliteTable("summoners", {
   region: text("region").notNull(),
   gameName: text("game_name").notNull(),
   tagLine: text("tag_line").notNull(),
-  summonerId: text("summoner_id"),
   profileIconId: integer("profile_icon_id"),
   summonerLevel: integer("summoner_level"),
   lastUpdated: integer("last_updated").notNull(),

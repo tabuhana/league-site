@@ -12,7 +12,6 @@ export type SummonerUpsert = {
   region: Region;
   gameName: string;
   tagLine: string;
-  summonerId?: string | null;
   profileIconId?: number | null;
   summonerLevel?: number | null;
 };

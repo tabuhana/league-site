@@ -5,6 +5,8 @@ export type RivenGameRow = RivenGame;
 
 export type RollingStatPoint = {
   gameIndex: number;
+  /** Opponent top laner for the game at this rolling point (chronological endpoint). */
+  opponentChampionName: string;
   winRate: number;
   avgKDA: number;
   avgCsPer10: number;
@@ -63,6 +65,7 @@ export function computeRollingStats(
 
     points.push({
       gameIndex: i + 1,
+      opponentChampionName: chronological[i].opponentChampionName,
       winRate: wins / n,
       avgKDA: kdaRatio(kills / n, deaths / n, assists / n),
       avgCsPer10: csPer10 / n,

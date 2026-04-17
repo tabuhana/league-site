@@ -86,11 +86,11 @@ export function summonerByPuuidUrl(region: PlatformRegion, puuid: string): strin
   return `${platformHost(region)}/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`;
 }
 
-export function leagueBySummonerIdUrl(
+export function leagueByPuuidUrl(
   region: PlatformRegion,
-  summonerId: string,
+  puuid: string,
 ): string {
-  return `${platformHost(region)}/lol/league/v4/entries/by-summoner/${encodeURIComponent(summonerId)}`;
+  return `${platformHost(region)}/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`;
 }
 
 export function matchIdsByPuuidUrl(

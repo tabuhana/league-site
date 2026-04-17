@@ -5,8 +5,6 @@ export type RiotAccount = {
 };
 
 export type Summoner = {
-  id: string;
-  accountId: string;
   puuid: string;
   profileIconId: number;
   revisionDate: number;
@@ -18,7 +16,7 @@ export type LeagueEntry = {
   queueType: string;
   tier: string;
   rank: string;
-  summonerId: string;
+  puuid: string;
   leaguePoints: number;
   wins: number;
   losses: number;

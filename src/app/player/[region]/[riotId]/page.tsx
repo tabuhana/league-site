@@ -1,21 +1,15 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RivenMasteryCard } from "@/components/profile/RivenMasteryCard";
 import { RivenStatsOverview } from "@/components/profile/RivenStatsOverview";
-import { RivenMatchCard } from "@/components/match/RivenMatchCard";
-import {
-  RivenMatchList,
-  type MatchRow,
-} from "@/components/match/RivenMatchList";
-import { MatchDetail } from "@/components/match/MatchDetail";
+import { RivenMatchFeed } from "@/components/match/RivenMatchFeed";
 import {
   getEloRivenStats,
   getRankedEntries,
   getRivenGames,
+  getRivenGamesSoloRanked,
   getRivenGameCount,
   getRivenMatchups,
   getRivenOverallStats,
-  getSummoner,
 } from "@/lib/db/queries";
 import { getAccountByRiotId, getRivenMastery } from "@/lib/riot/client";
 import { getChampionIconUrl } from "@/lib/riot/ddragon";
@@ -23,18 +17,19 @@ import { PLATFORM_HOSTS, type PlatformRegion } from "@/lib/riot/endpoints";
 import { parseRiotId } from "@/lib/utils";
 import { getChampionByName } from "@/constants/champions";
 import { StatsTab } from "@/components/stats/StatsTab";
-import { TIERS, type Tier } from "@/components/stats/EloDistribution";
+import { TIERS, type Tier } from "@/components/stats/tiers";
 import type { EloRivenStats, PlayerMatchup } from "@/types";
+import { toSerializedMatchRows } from "@/lib/riven-rows";
 
 function isValidRegion(r: string): r is PlatformRegion {
   return Object.hasOwn(PLATFORM_HOSTS, r);
 }
 
-type TabValue = "overview" | "matches" | "stats";
+type TabValue = "overview" | "stats";
 
 function parseTab(raw: string | string[] | undefined): TabValue {
   const value = Array.isArray(raw) ? raw[0] : raw;
-  if (value === "matches" || value === "stats") return value;
+  if (value === "stats") return "stats";
   return "overview";
 }
 
@@ -55,33 +50,15 @@ export default async function PlayerPage({
   const account = await getAccountByRiotId(region, gameName, tagLine);
   if (!account) notFound();
 
-  const summoner = getSummoner(account.puuid);
-  if (!summoner) notFound();
-
-  const rivenCount = getRivenGameCount(summoner.puuid);
-  const basePath = `/player/${region}/${riotId}`;
+  const puuid = account.puuid;
+  const rivenCount = getRivenGameCount(puuid);
 
   if (tab === "stats") {
-    return <StatsTabContainer puuid={summoner.puuid} />;
-  }
-
-  if (tab === "matches") {
-    return (
-      <MatchesTab
-        puuid={summoner.puuid}
-        region={region}
-        rivenCount={rivenCount}
-      />
-    );
+    return <StatsTabContainer puuid={puuid} />;
   }
 
   return (
-    <OverviewTab
-      puuid={summoner.puuid}
-      region={region}
-      rivenCount={rivenCount}
-      matchesHref={`${basePath}?tab=matches`}
-    />
+    <OverviewTab puuid={puuid} region={region} rivenCount={rivenCount} />
   );
 }
 
@@ -89,18 +66,22 @@ async function OverviewTab({
   puuid,
   region,
   rivenCount,
-  matchesHref,
 }: {
   puuid: string;
   region: PlatformRegion;
   rivenCount: number;
-  matchesHref: string;
 }) {
   const mastery = await getRivenMastery(region, puuid).catch(() => null);
 
+  const initialLimit = rivenCount > 0 ? Math.min(25, rivenCount) : 0;
+  const initialGames =
+    initialLimit > 0 ? getRivenGames(puuid, initialLimit, 0) : [];
+  const initialRows = await toSerializedMatchRows(initialGames);
+  const feedKey = `${puuid}-${rivenCount}`;
+
   if (rivenCount === 0) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <div className="grid gap-4 lg:grid-cols-2">
           <RivenMasteryCard mastery={mastery} />
           <div className="rounded border border-accent-gold/30 bg-bg-secondary p-6 text-center">
@@ -109,16 +90,23 @@ async function OverviewTab({
               Riven main!
             </p>
             <p className="mt-2 text-xs text-text-secondary">
-              Use the Matches tab to trigger a fresh scan.
+              Use <span className="text-accent-gold">Scan matches</span> next to
+              the Match history filters to pull match history from Riot.
             </p>
           </div>
         </div>
+        <RivenMatchFeed
+          key={feedKey}
+          initialRows={initialRows}
+          puuid={puuid}
+          region={region}
+          totalCount={rivenCount}
+        />
       </div>
     );
   }
 
   const stats = getRivenOverallStats(puuid);
-  const recentGames = getRivenGames(puuid, 5, 0);
   const matchups = getRivenMatchups(puuid);
 
   const sorted = matchups.filter((m) => m.games >= 2);
@@ -136,22 +124,18 @@ async function OverviewTab({
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <section>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3">
             <h2 className="text-xs uppercase tracking-widest text-text-secondary">
-              Recent Riven games
+              Match history
             </h2>
-            <Link
-              href={matchesHref}
-              className="text-xs uppercase tracking-widest text-accent-gold hover:underline"
-            >
-              View all →
-            </Link>
           </div>
-          <div className="flex flex-col gap-2">
-            {recentGames.map((game) => (
-              <RivenMatchCard key={game.matchId} game={game} />
-            ))}
-          </div>
+          <RivenMatchFeed
+            key={feedKey}
+            initialRows={initialRows}
+            puuid={puuid}
+            region={region}
+            totalCount={rivenCount}
+          />
         </section>
         <section className="flex flex-col gap-4">
           <MatchupList
@@ -228,59 +212,6 @@ async function MatchupList({
   );
 }
 
-async function MatchesTab({
-  puuid,
-  region,
-  rivenCount,
-}: {
-  puuid: string;
-  region: PlatformRegion;
-  rivenCount: number;
-}) {
-  const games = getRivenGames(puuid, 50, 0);
-
-  if (rivenCount === 0) {
-    return (
-      <div className="flex flex-col gap-4">
-        <div className="rounded border border-accent-gold/30 bg-bg-secondary p-6 text-center">
-          <p className="text-sm text-text-primary">
-            No Riven games found in recent match history. Try searching a Riven
-            main!
-          </p>
-        </div>
-        <RivenMatchList
-          rows={[]}
-          totalCount={0}
-          puuid={puuid}
-          region={region}
-        />
-      </div>
-    );
-  }
-
-  const rows: MatchRow[] = games.map((game) => ({
-    matchId: game.matchId,
-    queueId: game.queueId,
-    card: <RivenMatchCard game={game} />,
-    detail: (
-      <MatchDetail
-        matchSnapshot={game.matchSnapshot}
-        rivenPuuid={game.puuid}
-        opponentChampionId={game.opponentChampionId}
-      />
-    ),
-  }));
-
-  return (
-    <RivenMatchList
-      rows={rows}
-      totalCount={rivenCount}
-      puuid={puuid}
-      region={region}
-    />
-  );
-}
-
 function normalizeTier(tier: string | null): Tier | null {
   if (!tier) return null;
   const upper = tier.toUpperCase() as Tier;
@@ -288,7 +219,8 @@ function normalizeTier(tier: string | null): Tier | null {
 }
 
 function StatsTabContainer({ puuid }: { puuid: string }) {
-  const games = getRivenGames(puuid, 500, 0);
+  const allGames = getRivenGames(puuid, 500, 0);
+  const rankedGames = getRivenGamesSoloRanked(puuid, 500, 0);
   const ranked = getRankedEntries(puuid);
   const soloEntry = ranked.find((e) => e.queueType === "RANKED_SOLO_5x5");
   const playerTier = normalizeTier(soloEntry?.tier ?? null);
@@ -301,7 +233,8 @@ function StatsTabContainer({ puuid }: { puuid: string }) {
 
   return (
     <StatsTab
-      games={games}
+      allGames={allGames}
+      rankedGames={rankedGames}
       eloStatsByTier={eloStatsByTier}
       playerTier={playerTier}
     />

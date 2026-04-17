@@ -3,7 +3,7 @@ import { RIVEN_CHAMPION_ID } from "@/constants/riven";
 import {
   accountByRiotIdUrl,
   championMasteryByPuuidAndChampionUrl,
-  leagueBySummonerIdUrl,
+  leagueByPuuidUrl,
   matchByIdUrl,
   matchIdsByPuuidUrl,
   spectatorByPuuidUrl,
@@ -90,10 +90,10 @@ export function getSummonerByPuuid(
 
 export async function getLeagueEntries(
   region: PlatformRegion,
-  summonerId: string,
+  puuid: string,
 ): Promise<LeagueEntry[]> {
   const entries = await riotFetch<LeagueEntry[]>(
-    leagueBySummonerIdUrl(region, summonerId),
+    leagueByPuuidUrl(region, puuid),
   );
   return entries ?? [];
 }

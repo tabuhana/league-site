@@ -57,21 +57,17 @@ export async function GET(request: Request) {
       });
     }
 
-    const summoner = await getSummonerByPuuid(region, account.puuid);
-    const summonerId = summoner?.id ?? null;
-    const leagueEntries = summonerId
-      ? await getLeagueEntries(region, summonerId)
-      : [];
-    const mastery = await getRivenMastery(region, account.puuid).catch(
-      () => null,
-    );
+    const [summoner, leagueEntries, mastery] = await Promise.all([
+      getSummonerByPuuid(region, account.puuid),
+      getLeagueEntries(region, account.puuid),
+      getRivenMastery(region, account.puuid).catch(() => null),
+    ]);
 
     upsertSummoner({
       puuid: account.puuid,
       region,
       gameName: account.gameName,
       tagLine: account.tagLine,
-      summonerId,
       profileIconId: summoner?.profileIconId ?? null,
       summonerLevel: summoner?.summonerLevel ?? null,
     });

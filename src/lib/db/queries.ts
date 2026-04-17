@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getChampionByName } from "@/constants/champions";
+import { RANKED_SOLO } from "@/constants/riven";
 import type {
   EloRivenStats,
   MatchupSummary,
@@ -35,7 +36,6 @@ export function upsertSummoner(data: SummonerUpsert): void {
     region: data.region,
     gameName: data.gameName,
     tagLine: data.tagLine,
-    summonerId: data.summonerId ?? null,
     profileIconId: data.profileIconId ?? null,
     summonerLevel: data.summonerLevel ?? null,
     lastUpdated: now,
@@ -48,7 +48,6 @@ export function upsertSummoner(data: SummonerUpsert): void {
         region: row.region,
         gameName: row.gameName,
         tagLine: row.tagLine,
-        summonerId: row.summonerId,
         profileIconId: row.profileIconId,
         summonerLevel: row.summonerLevel,
         lastUpdated: row.lastUpdated,
@@ -151,6 +150,24 @@ export function getRivenGames(
     .select()
     .from(rivenGames)
     .where(eq(rivenGames.puuid, puuid))
+    .orderBy(desc(rivenGames.gameCreation))
+    .limit(limit)
+    .offset(offset)
+    .all();
+}
+
+/** Solo/Duo ranked games only (queueId 420), newest first. */
+export function getRivenGamesSoloRanked(
+  puuid: string,
+  limit = 20,
+  offset = 0,
+): RivenGame[] {
+  return db
+    .select()
+    .from(rivenGames)
+    .where(
+      and(eq(rivenGames.puuid, puuid), eq(rivenGames.queueId, RANKED_SOLO)),
+    )
     .orderBy(desc(rivenGames.gameCreation))
     .limit(limit)
     .offset(offset)
@@ -347,6 +364,7 @@ export function getEloRivenStats(tier: string): EloRivenStats | null {
       and(
         eq(rankedEntries.queueType, RANKED_SOLO_QUEUE),
         eq(rankedEntries.tier, normalizedTier),
+        eq(rivenGames.queueId, RANKED_SOLO),
       ),
     )
     .get();

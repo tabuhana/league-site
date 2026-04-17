@@ -20,7 +20,9 @@ export function TabNav({
   defaultValue: string;
 }) {
   const params = useSearchParams();
-  const active = params.get(paramKey) ?? defaultValue;
+  const raw = params.get(paramKey) ?? defaultValue;
+  const known = tabs.map((t) => t.value);
+  const active = known.includes(raw) ? raw : defaultValue;
 
   return (
     <nav className="border-b border-riven-border bg-bg-secondary/40">
