@@ -9,6 +9,8 @@ import {
 } from "@/components/match/RivenMatchList";
 import { MatchDetail } from "@/components/match/MatchDetail";
 import {
+  getEloRivenStats,
+  getRankedEntries,
   getRivenGames,
   getRivenGameCount,
   getRivenMatchups,
@@ -20,7 +22,9 @@ import { getChampionIconUrl } from "@/lib/riot/ddragon";
 import { PLATFORM_HOSTS, type PlatformRegion } from "@/lib/riot/endpoints";
 import { parseRiotId } from "@/lib/utils";
 import { getChampionByName } from "@/constants/champions";
-import type { PlayerMatchup } from "@/types";
+import { StatsTab } from "@/components/stats/StatsTab";
+import { TIERS, type Tier } from "@/components/stats/EloDistribution";
+import type { EloRivenStats, PlayerMatchup } from "@/types";
 
 function isValidRegion(r: string): r is PlatformRegion {
   return Object.hasOwn(PLATFORM_HOSTS, r);
@@ -58,11 +62,7 @@ export default async function PlayerPage({
   const basePath = `/player/${region}/${riotId}`;
 
   if (tab === "stats") {
-    return (
-      <div className="rounded border border-riven-border bg-bg-secondary p-10 text-center text-sm text-text-secondary">
-        Stats coming soon
-      </div>
-    );
+    return <StatsTabContainer puuid={summoner.puuid} />;
   }
 
   if (tab === "matches") {
@@ -277,6 +277,33 @@ async function MatchesTab({
       totalCount={rivenCount}
       puuid={puuid}
       region={region}
+    />
+  );
+}
+
+function normalizeTier(tier: string | null): Tier | null {
+  if (!tier) return null;
+  const upper = tier.toUpperCase() as Tier;
+  return (TIERS as readonly string[]).includes(upper) ? upper : null;
+}
+
+function StatsTabContainer({ puuid }: { puuid: string }) {
+  const games = getRivenGames(puuid, 500, 0);
+  const ranked = getRankedEntries(puuid);
+  const soloEntry = ranked.find((e) => e.queueType === "RANKED_SOLO_5x5");
+  const playerTier = normalizeTier(soloEntry?.tier ?? null);
+
+  const eloStatsByTier: Partial<Record<Tier, EloRivenStats>> = {};
+  for (const tier of TIERS) {
+    const stats = getEloRivenStats(tier);
+    if (stats) eloStatsByTier[tier] = stats;
+  }
+
+  return (
+    <StatsTab
+      games={games}
+      eloStatsByTier={eloStatsByTier}
+      playerTier={playerTier}
     />
   );
 }
